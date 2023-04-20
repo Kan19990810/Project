@@ -6,9 +6,18 @@
 3、进行训练
 """
 
-import argparse, glob, os, torch, warnings, time
-from tools import *
+import argparse
+import glob
+import os
+import torch
+import warnings
+import time
+
+from torch.utils.data import DataLoader
 from dataLoader import train_loader
+from ECAPAModel import ECAPAModel
+from tools import *
+
 # from ECAPAModel import ECAPAModel
 
 # 主声明
@@ -52,5 +61,20 @@ args = init_args(args)
 
 # 载入数据， train_loader 为dataLoader库函数
 # **vars(args) 将args 的参数转化为字典
+# train_loader 为dataLoader 库定义的类
 trainloader = train_loader(**vars(args))
-trainLoader = torch.utils.data.DataLoader(trainloader, batch_size=args.batch_size, shuffle=True, num_workers=args.n_gpu, drop_last=True)
+trainLoader = DataLoader(trainloader, batch_size=args.batch_size, shuffle=True, num_workers=args.n_gpu, drop_last=True)
+
+# 查找已存在的模型
+modelfiles = glob.glob('%s/model_0*.model' % args.model_save_path)
+modelfiles.sort()
+
+# 评估测试模式，使用已存在的模型， 位置为 args.initial_model
+if args.eval:
+    # ECAPAModel 为 ECAPAModel定义的类, 定义ECAPAModel 模型初始化以及训练过程
+    s = ECAPAModel(**vars(args))
+    print('Model %s loaded from previous state!' % args.initial_model)
+    s.load_parameters(args.initial_model)
+    EER, minDCF = s.eval_network(eval_list=args.eval_list, eval_path=args.eval_path)
+    print('EER %2.2f%% minDCF %.4f%%' % (EER, minDCF))
+    quit()
