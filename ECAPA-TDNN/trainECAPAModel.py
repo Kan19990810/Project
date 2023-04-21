@@ -74,7 +74,14 @@ if args.eval:
     # ECAPAModel 为 ECAPAModel定义的类, 定义ECAPAModel 模型初始化以及训练过程
     s = ECAPAModel(**vars(args))
     print('Model %s loaded from previous state!' % args.initial_model)
+    # load_parameters() 为 ECAPAModel类 定义函数
     s.load_parameters(args.initial_model)
     EER, minDCF = s.eval_network(eval_list=args.eval_list, eval_path=args.eval_path)
     print('EER %2.2f%% minDCF %.4f%%' % (EER, minDCF))
     quit()
+
+if args.initial_model != '':
+    print('Model %s loaded form previous state!' % args.initial_model)
+    s = ECAPAModel(**vars(args))
+    s.load_parameters(args.initial_model)
+    epoch = 1

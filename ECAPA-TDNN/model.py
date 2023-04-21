@@ -109,7 +109,7 @@ class Bottle2neck(nn.Module):
         # 进行空洞卷积 Res2 Dilated Conv1D + ReLU + BN
         num_pad = math.floor(kernel_size/2)*dilation
         for i in range(self.nums):
-            convs.append(nn.Conv1d(width,width, kernel_size=kernel_size, dilation=dilation, padding=num_pad))
+            convs.append(nn.Conv1d(width, width, kernel_size=kernel_size, dilation=dilation, padding=num_pad))
             bns.append(nn.BatchNorm1d(width))
         self.convs = nn.ModuleList(convs)
         self.bns   = nn.ReLU()
@@ -210,7 +210,7 @@ class ECAPA_TDNN(nn.Module):
                 x = self.specaug(x)
         # (batch, 80, time) -> (batch, channel = 1024, time)
         x = self.conv1(x)
-        x = self.rulu()
+        x = self.relu(x)
         x = self.bn1(x)
 
         x1 = self.layer1(x)
@@ -241,4 +241,5 @@ class ECAPA_TDNN(nn.Module):
         x = self.fc6(x)
         x = self.bn6(x)
 
+        # return (batch, 192, time)
         return x
