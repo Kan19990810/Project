@@ -113,4 +113,3 @@ while 1:
         quit()
 
     epoch += 1
- 
