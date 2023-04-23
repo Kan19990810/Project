@@ -36,7 +36,6 @@ def accuracy(output, target, topk=(1,)):
     return res
 
 
-# 下面的计算还需要好好研读 🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️
 def tuneThresholdfromScore(scores, labels, target_fa, target_fr=None):
     # metrics.roc_curve 计算ROC曲线
     # 假阳率， 真阳率， 阈值
@@ -63,6 +62,7 @@ def tuneThresholdfromScore(scores, labels, target_fa, target_fr=None):
 
 
 def ComputeErrorRates(scores, labels):
+    #  zip 编成 index: threshold 字典， 按照index 排序
     sorted_indexes, thresholds = zip(*sorted(
         [(index, threshold) for index, threshold in enumerate(scores)],
         key=itemgetter(1)))
@@ -70,7 +70,8 @@ def ComputeErrorRates(scores, labels):
     labels = [labels[i] for i in sorted_indexes]
     fnrs = []
     fprs = []
-
+    # 为什么 labels[i] 归为 错误拒绝， 1-labels[i] 归为错误接受🙌🙌🙌🙌🙌
+    # 阈值设置 scores[i] 时 label[0:i] 的拒绝， label[i:] 接受
     for i in range(0, len(labels)):
         if i == 0:
             fnrs.append(labels[i])
@@ -78,6 +79,7 @@ def ComputeErrorRates(scores, labels):
         else:
             fnrs.append(fnrs[i - 1] + labels[i])
             fprs.append(fnrs[i - 1] + 1 - labels[i])
+    # fnrs 错误拒绝,  fprs 错误接受
     fnrs_norm = sum(labels)
     fprs_norm = len(labels) - fnrs_norm
 
@@ -96,5 +98,6 @@ def ComputeMinDCF(fnrs, fprs, thresholds, p_target, c_miss, c_fa):
             min_c_det = c_det
             min_c_det_threshold = thresholds[i]
     c_def = min(c_miss * p_target, c_fa * (1 - p_target))
+    # min_dcf = min_c_det / c_def 这个和论文表述的min-DCF 不一致 🤦‍♀️🤦‍♀️🤦‍♀️🤦‍♀️
     min_dcf = min_c_det / c_def
     return min_dcf, min_c_det_threshold

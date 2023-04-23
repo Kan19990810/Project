@@ -77,8 +77,9 @@ class ECAPAModel(nn.Module):
         for line in lines:
             embedding_11, embedding_12 = embeddings[line.split()[1]]
             embedding_21, embedding_22 = embeddings[line.split()[2]]
-            # 为什么是(embedding_11, embedding_12.T)进行配对 🎶🎶🎶🎶🎶
-            score_1 = torch.mean(torch.matmul(embedding_11, embedding_12.T))
+            # 为什么是(embedding_11, embedding_21.T)进行配对 🎶🎶🎶🎶🎶
+            # (batch, 192) matmul (batch, 192).T
+            score_1 = torch.mean(torch.matmul(embedding_11, embedding_21.T))
             score_2 = torch.mean(torch.matmul(embedding_12, embedding_22.T))
             score = (score_1 + score_2) / 2
             score = score.detach().cpu().numpy()
@@ -93,7 +94,6 @@ class ECAPAModel(nn.Module):
 
         return EER, minDCF
 
-
     def save_parameters(self, path):
         torch.save(self.state_dict(), path)
 
@@ -105,12 +105,13 @@ class ECAPAModel(nn.Module):
             if name not in self.state:
                 name = name.replace('module,', '')
                 if name not in self.state:
-                    print('%s is not in the model.' %    e)
+                    print('%s is not in the model.' % origname)
                     continue
-
-
-
-
+            if self_state[name].size() != loaded_state[origname].size():
+                print('Wrong parameter length: %s, model: %s, loaded %s' % (
+                    origname, self.state[name].size(), loaded_state[origname].size()))
+                continue
+            self_state[name].copy_(param)
 
     def train_network(self, epoch, loader):
         self.train()
@@ -122,10 +123,18 @@ class ECAPAModel(nn.Module):
 
         for num, (data, labels) in enumerate(loader, start=1):
             self.zero_grad()
-
-
-
-
-
-
-
+            labels = torch.LongTensor(labels).cuda()
+            speaker_embedding = self.speaker_encoder.forward(data.cuda(), aug=True)
+            nloss, prec = self.speaker_loss.forward(speaker_embedding, labels)
+            nloss.backward()
+            self.optim.step()
+            index += len(labels)
+            top1 += prec
+            loss += nloss.datach().cpu().numpy()
+            # sys.stderr 类似于中断？🤞🤞🤞🤞🤞
+            sys.stderr.write(time.strftime('%m-%d %H:%M:%S') +
+                             ' [%2d Lr: %5f, Training: %.2f%%, ' % (epoch, lr, 100 * (num / loader.__len__())) +
+                             ' Loss: %.5f, ACC: %2.2f%% \r' % (loss / num, top1 / index * len(labels)))
+            sys.stderr.flush()
+        sys.stdout.write('\n')
+        return loss / num, lr, top1 / index * len(labels)

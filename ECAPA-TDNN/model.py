@@ -223,7 +223,7 @@ class ECAPA_TDNN(nn.Module):
 
         t = x.size()[-1]
 
-        # (batch, 1536, time) -> (barch, 1536 * 3 = 4608, time)
+        # (batch, 1536, time) -> (batch, 1536 * 3 = 4608, time)
         # 拼接 x, 均值， 标准差
         global_x = torch.cat((x, torch.mean(x, dim=2, keepdim=True).repeat(1, 1, t),
                               torch.sqrt(torch.var(x, dim=2, keepdim=True).clamp(min=1e-4)).repeat(1, 1, t)), dim=1)
@@ -232,7 +232,7 @@ class ECAPA_TDNN(nn.Module):
         w = self.attention(global_x)
 
         # Attentive Statistics Pooling, ASP
-        # (batch, 1536, time) -> (batch, 3072, time)
+        # (batch, 1536, time) -> (batch, 3072)
         mu = torch.sum(x * w, dim=2)
         sg = torch.sqrt((torch.sum((x ** 2) * w, dim=2) - mu ** 2).clamp(min=1e-4))
         x = torch.cat((mu, sg), 1)
@@ -241,5 +241,5 @@ class ECAPA_TDNN(nn.Module):
         x = self.fc6(x)
         x = self.bn6(x)
 
-        # return (batch, 192, time)
+        # return (batch, 192)
         return x
