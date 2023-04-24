@@ -38,7 +38,6 @@ class ECAPAModel(nn.Module):
         # 根据eval_list, 载入wav文件
         lines = open(eval_list).read().splitlines()
         # id10003 id10003/na8-QEFmj44/00003.wav
-        # 后面应该还有一个文件路径吧 ⛷️⛷️⛷️⛷️⛷️
         for line in lines:
             files.append(line.split()[1])
             files.append(line.split()[2])
@@ -67,6 +66,7 @@ class ECAPAModel(nn.Module):
             with torch.no_grad():
                 embedding_1 = self.speaker_encoder.forward(data_1, aug=False)
                 embedding_1 = F.normalize(embedding_1, p=2, dim=1)
+                # (5, 192)
                 embedding_2 = self.speaker_encoder.forward(data_2, aug=False)
                 embedding_2 = F.normalize(embedding_2, p=2, dim=1)
             embeddings[file] = [embedding_1, embedding_2]
@@ -77,8 +77,8 @@ class ECAPAModel(nn.Module):
         for line in lines:
             embedding_11, embedding_12 = embeddings[line.split()[1]]
             embedding_21, embedding_22 = embeddings[line.split()[2]]
-            # 为什么是(embedding_11, embedding_21.T)进行配对 🎶🎶🎶🎶🎶
-            # (batch, 192) matmul (batch, 192).T
+            # score_1  (1, 192) matmul (1, 192).T -> 1
+            # score_2 (5, 192) matmul (5, 192).T -> (5, 5) -> 1
             score_1 = torch.mean(torch.matmul(embedding_11, embedding_21.T))
             score_2 = torch.mean(torch.matmul(embedding_12, embedding_22.T))
             score = (score_1 + score_2) / 2

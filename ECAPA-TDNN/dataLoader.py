@@ -121,8 +121,8 @@ class train_loader(object):
             noise_db = 10 * numpy.log10(numpy.mean(noiseaudio ** 2) + 1e-4)
             # self.noisesnr = {'noise': [0, 15], 'speech': [13, 20], 'music': [5, 15]}
             noisesnr = random.uniform(self.noisesnr[noisecat][0], self.noisesnr[noisecat][1])
-            # 标准化 noiseaudio， 具体公式：👍👍👍👍👍
-            noise.append(numpy.sqrt(10 ** ((clean_db - noise_db - noisesnr) / 10)) * noiseaudio)
+            # 标准化 noiseaudio，根据信噪比进行改变噪声分贝
+            noises.append(numpy.sqrt(10 ** ((clean_db - noise_db - noisesnr) / 10)) * noiseaudio)
         # 所有噪音音频在第 0 维拼接，再由 0 维进行累和。这样speech 有多个音频文件，累和会不会导致幅值过高？👍👍👍👍
         noise = numpy.sum(numpy.concatenate(noises, axis=0), axis=0, keepdims=True)
         return noise + audio

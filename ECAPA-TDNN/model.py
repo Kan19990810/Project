@@ -131,6 +131,7 @@ class Bottle2neck(nn.Module):
 
         # 空洞卷积部分
         # 在channel 维， 根据 width 进行切分
+        # Res2Net
         spx = torch.split(out, self.width, 1)
         for i in range(self.nums):
             if i == 0:
@@ -146,8 +147,6 @@ class Bottle2neck(nn.Module):
             else:
                 # out 维数 (batch, channel - width, time)
                 out = torch.cat((out, sp), 1)
-            # torch.cat((out, spx[self.nums]), 1), 维数 (batch, channel, time)
-            # 这样的用意是什么 🤷‍♂️🤷‍♂️🤷‍♂️🤷‍♂️🤷‍♂️🤷‍♂️
         out = torch.cat((out, spx[self.nums]), 1)
 
         out = self.conv3(out)

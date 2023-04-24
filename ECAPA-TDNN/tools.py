@@ -70,8 +70,6 @@ def ComputeErrorRates(scores, labels):
     labels = [labels[i] for i in sorted_indexes]
     fnrs = []
     fprs = []
-    # 为什么 labels[i] 归为 错误拒绝， 1-labels[i] 归为错误接受🙌🙌🙌🙌🙌
-    # 阈值设置 scores[i] 时 label[0:i] 的拒绝， label[i:] 接受
     for i in range(0, len(labels)):
         if i == 0:
             fnrs.append(labels[i])
