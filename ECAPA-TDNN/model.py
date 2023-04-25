@@ -19,7 +19,7 @@ class PreEmphasis(torch.nn.Module):
         # register_buffer 创造一个新的变量缓冲区, 不会被优化器更新， 用于将非参数变量放到模型中
         self.register_buffer(
             # flipped_filter[-0.97, 1.]  在前面扩展了 2 维, shape : torch.Size([1, 1, 2])
-            'flipped_filter', torch.FloatTensor([-self.coef, 1.]).unsqueeze(0).unsequeeze(0)
+            'flipped_filter', torch.FloatTensor([-self.coef, 1.]).unsqueeze(0).unsqueeze(0)
         )
 
     def forward(self, inp: torch.tensor) -> torch.tensor:
@@ -46,7 +46,7 @@ class FbankAug(nn.Module):
         # 两种模式，feature_mask and time_mask
         if dim == 1:
             D = fea
-            width_range = self.frea_mask_width
+            width_range = self.freq_mask_width
         else:
             D = time
             width_range = self.time_mask_width
@@ -112,7 +112,7 @@ class Bottle2neck(nn.Module):
             convs.append(nn.Conv1d(width, width, kernel_size=kernel_size, dilation=dilation, padding=num_pad))
             bns.append(nn.BatchNorm1d(width))
         self.convs = nn.ModuleList(convs)
-        self.bns   = nn.ReLU()
+        self.bns   = nn.ModuleList(bns)
 
         # Conv1D + ReLU + BN
         self.conv3 = nn.Conv1d(width*scale, planes, kernel_size=1)

@@ -30,7 +30,7 @@ def accuracy(output, target, topk=(1,)):
     res = []
     for k in topk:
         # 对于 topk 分开统计正确个数
-        correct_k = correct[:k].view(-1).floeat().sum(0, keepdims=True)
+        correct_k = correct[:k].view(-1).float().sum(0, keepdims=True)
         res.append(correct_k.mul_(100.0 / batch_size))
 
     return res

@@ -24,16 +24,16 @@ class train_loader(object):
         self.noiselist = {}
 
         # 读取musan中的所有环境音频文件
-        augment_files = glob.glob(os.path.join(musan_path, '*/*/*/*.wav'))
+        augment_files = glob.glob(os.path.join(musan_path, '*\\*\\*\\*.wav'))
 
         # 分场景存放musan音频文件：speech、noise、music
         for file in augment_files:
-            if file.split('/')[-4] not in self.noiselist:
-                self.noiselist[file.split('/')[-4]] = []
-            self.noiselist[file.split('/')[-4]].append(file)
+            if file.split('\\')[-4] not in self.noiselist:
+                self.noiselist[file.split('\\')[-4]] = []
+            self.noiselist[file.split('\\')[-4]].append(file)
 
         # 读取rir中所有环境音频文件
-        self.rir_files = glob.glob(os.path.join(rir_path, '*/*/*.wav'))
+        self.rir_files = glob.glob(os.path.join(rir_path, '*\\*\\*.wav'))
 
         # 根据list文件加载数据和标签
         self.data_list = []
@@ -88,6 +88,9 @@ class train_loader(object):
             audio = self.add_noise(audio, 'music')
         # 返回音频的 0 维 与标签， 作用：返回音频shape torch.Size([length])
         return torch.FloatTensor(audio[0]), self.data_label[index]
+
+    def __len__(self):
+        return len(self.data_list)
 
     def add_rev(self, audio):
         rir_file = random.choice(self.rir_files)

@@ -55,7 +55,7 @@ class ECAPAModel(nn.Module):
                 shortage = max_audio - audio.shape[0]
                 audio = numpy.pad(audio, (0, shortage), 'wrap')
             # 每个音频截取 num=5 段音频作为测试样本
-            startframe = numpy.linespace(0, audio.shape[0] - max_audio, num=5)
+            startframe = numpy.linspace(0, audio.shape[0] - max_audio, num=5)
             feats = []
             for asf in startframe:
                 feats.append(audio[int(asf):int(asf) + max_audio])
@@ -102,7 +102,7 @@ class ECAPAModel(nn.Module):
         loaded_state = torch.load(path)
         for name, param in loaded_state.items():
             origname = name
-            if name not in self.state:
+            if name not in self_state:
                 name = name.replace('module,', '')
                 if name not in self.state:
                     print('%s is not in the model.' % origname)
@@ -130,7 +130,7 @@ class ECAPAModel(nn.Module):
             self.optim.step()
             index += len(labels)
             top1 += prec
-            loss += nloss.datach().cpu().numpy()
+            loss += nloss.detach().cpu().numpy()
             # sys.stderr 类似于中断？🤞🤞🤞🤞🤞
             sys.stderr.write(time.strftime('%m-%d %H:%M:%S') +
                              ' [%2d Lr: %5f, Training: %.2f%%, ' % (epoch, lr, 100 * (num / loader.__len__())) +

@@ -42,6 +42,6 @@ class AAMsoftmax(nn.Module):
         loss = self.ce(output, label)
         # accuracy tools库函数中的函数
         # detach 不会在优化中改变参数
-        prec1 = accuracy(output.detach(), label.detach, topk=(1,))[0]
+        prec1 = accuracy(output.detach(), label.detach(), topk=(1,))[0]
 
         return loss, prec1
