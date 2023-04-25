@@ -13,7 +13,7 @@ import torch
 import warnings
 import time
 
-from torch.utils.data import DataLoader
+from torch.utils.data.dataloader import DataLoader
 from dataLoader import train_loader
 from ECAPAModel import ECAPAModel
 from tools import *
@@ -33,7 +33,7 @@ parser.add_argument('--lr_decay',      type=float,  default=0.97,    help='学�
 parser.add_argument('--train_list',    type=str, default='lists\\train_list.txt',           help='训练集列表路径')
 parser.add_argument('--train_path',    type=str, default='D:\\File\\PracticeProject\\ECAPA-TDNN\\data\\voxceleb2',           help='训练集数据路径')
 parser.add_argument('--eval_list',     type=str, default='lists\\test_list.txt',           help='测试集列表路径')
-parser.add_argument('--eval_path',     type=str, default='D:\\File\\PracticeProject\\ECAPA-TDNN\\data\\voxceleb1',           help='测试集书记路径')
+parser.add_argument('--eval_path',     type=str, default='D:\\File\\PracticeProject\\ECAPA-TDNN\\data\\voxceleb1',           help='测试集数据路径')
 parser.add_argument('--musan_path',    type=str, default='D:\\File\\PracticeProject\\ECAPA-TDNN\\data\\musan_split',           help='musan路径,用于数据增强')
 parser.add_argument('--rir_path',      type=str, default='D:\\File\\PracticeProject\\ECAPA-TDNN\\data\\RIRS_NOISES\\simulated_rirs',           help='rir路径，用于数据增强')
 parser.add_argument('--save_path',       type=str, default='exps\\exp1',           help='模型、分数保存路径')
