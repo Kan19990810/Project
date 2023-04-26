@@ -46,8 +46,8 @@ class train_loader(object):
                 self.noiselist[file.split('/')[-4]] = []
             self.noiselist[file.split('/')[-4]].append(file)
         self.rir_files = glob.glob(os.path.join(rir_path, '*/*/*.wav'))
-        # Load data & labels
 
+        # Load data & labels
         self.label_dict = {}
         self.data_list = []
         self.data_label = []
@@ -135,8 +135,11 @@ class train_sampler(Sampler):
         self.world_size = world_size
 
     def __iter__(self):
+        # g torch.Generator() 操作随机数
         g = torch.Generator()
+        # manual_seed 手动随机种子
         g.manual_seed(self.seed + self.epoch)
+        # randperm 将序列随机打乱
         indices = torch.randperm(len(self.data_label), generator=g).tolist()
         data_dict = {}
 
@@ -149,19 +152,23 @@ class train_sampler(Sampler):
         dictkeys = list(data_dict.keys())
         # dictkeys = list(self.label_dict.keys())
         dictkeys.sort()
-
+        # 虚拟函数 返回（len(li) \\ size, size)
         lol = lambda li, size: [li[i:i + size] for i in range(0, len(li), size)]
 
         flattened_list = []
         flattened_label = []
         for findex, key in enumerate(dictkeys):
             data = data_dict[key]
-            # data = self.label_dict[key]
+            # numSeg = k * nPerSpeaker
             numSeg = round_down(min(len(data), self.utter_per_speaker), self.nPerSpeaker)  # 向下取最大的可整除 nPerSpeaker 的数
+            # rp, (numSeg \\ nPerSpeaker = k, nPerSpeaker)
             rp = lol(numpy.arange(numSeg), self.nPerSpeaker)  # 返回以nPerSpeaker长度为间隔的顺序索引数组
             # rp = lol(numpy.random.permutation(len(data))[:numSeg], self.nPerSpeaker)
+            # len(rp) = numSeg \\ nPerSpeaker, 相当于同时也有len(rp)个相同的人
             flattened_label.extend([findex] * (len(rp)))
             for indices in rp:
+                # indices [i: i + nPerSpeaker]
+                # (numSeg \\ nPerSpeaker = k, nPerSpeaker)
                 flattened_list.append([data[i] for i in indices])
 
         # Mix data in random order
@@ -183,6 +190,7 @@ class train_sampler(Sampler):
         # nGPUs, device data to each GPU
         if self.ddp:
             total_size = round_down(len(mixed_list), self.batch_size * self.world_size)
+            # 不明白🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️
             start_index = int((dist.get_rank()) / self.world_size * total_size)
             end_index = int((dist.get_rank() + 1) / self.world_size * total_size)
             self.num_samples = end_index - start_index
