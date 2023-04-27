@@ -4,6 +4,8 @@ import math
 import torch.nn as nn
 import torch.nn.functional as F
 
+from models import AttentionBlocks
+
 
 class PreEmphasis(nn.Module):
 
@@ -84,21 +86,29 @@ class dkconv(nn.Module):
 
     def forward(self, x):
         batch_size = x.shape[0]
-
+        # M * (batch_size, channels, time)
         feats = [conv(x) for conv in self.convs]
+        # (batch_size,  2 * channels, time)
         feats = torch.cat(feats, dim=1)
+        # (batch_size, M=2, channels, time)
         feats = feats.view(batch_size, self.M, self.channels, feats.shape[2])
+        # (batch, channels, time)
         feats_U = torch.sum(feats, dim=1)
-
+        # (batch, channels, 1)
         fea_mu = feats_U.mean(dim=2).squeeze(-1)
         fea_sg = feats_U.std(dim=2).squeeze(-1)
+        # (batch, channels * 2)
         feats_S = torch.cat((fea_mu, fea_sg), dim=1).unsqueeze(-1)
-
+        # (batch, d = channels / r)
         feats_Z = self.fc(feats_S)
+        # M * (batch, channels)
         atten = [fc(feats_Z) for fc in self.fcs]
+        # (batch, channels * 2)
         atten = torch.cat(atten, dim=1)
+        # (batch, M = 2, channels, 1)
         atten = atten.view(batch_size, self.M, self.channels, 1)
         atten = self.softmax(atten)
+        # (batch, channels, time)
         feats_V = torch.sum(feats * atten, dim=1)
         return feats_V
 
@@ -130,13 +140,13 @@ class Bottle2neck(nn.Module):
         self.relu = nn.ReLU()
         self.width = width
         if attention == "se":
-            self.atten = SEModule(planes)
+            self.atten = AttentionBlocks.SEModule(planes)
         elif attention == "spa":
-            self.atten = SPAModule(planes)
+            self.atten = AttentionBlocks.SPAModule(planes)
         elif attention == "eca":
-            self.atten = ECAModule()
+            self.atten = AttentionBlocks.ECAModule()
         elif attention == "cbam":
-            self.atten = CBAModule(planes)
+            self.atten = AttentionBlocks.CBAModule(planes)
         else:
             raise ValueError('Undefined attention block.')
 
@@ -188,13 +198,13 @@ class BasicBlock(nn.Module):
         self.downsample = downsample
         self.stride = stride
         if attention == "se":
-            self.atten = SEModule(planes, planes // reduction)
+            self.atten = AttentionBlocks.SEModule(planes, planes // reduction)
         elif attention == "spa":
-            self.atten = SPAModule(planes, planes // reduction)
+            self.atten = AttentionBlocks.SPAModule(planes, planes // reduction)
         elif attention == "eca":
-            self.atten = ECAModule()
+            self.atten = AttentionBlocks.ECAModule()
         elif attention == "cbam":
-            self.atten = CBAModule(planes, planes // reduction)
+            self.atten = AttentionBlocks.CBAModule(planes, planes // reduction)
         else:
             raise ValueError('Undefined attention block.')
 

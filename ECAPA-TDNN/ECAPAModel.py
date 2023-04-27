@@ -28,7 +28,7 @@ class ECAPAModel(nn.Module):
         self.optim = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=2e-5)
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optim, step_size=test_step, gamma=lr_decay)
         print(time.strftime('%m-%d %H:%M:%S') + ' Model para number = %.2f million' % (
-            sum(param.numel() for param in self.speaker_encoder.parameters()) / 1024 / 1024))
+                sum(param.numel() for param in self.speaker_encoder.parameters()) / 1024 / 1024))
 
     def eval_network(self, eval_list, eval_path):
         self.eval()
@@ -131,6 +131,7 @@ class ECAPAModel(nn.Module):
             index += len(labels)
             top1 += prec
             loss += nloss.detach().cpu().numpy()
+
             # sys.stderr 类似于中断？🤞🤞🤞🤞🤞
             sys.stderr.write(time.strftime('%m-%d %H:%M:%S') +
                              ' [%2d Lr: %5f, Training: %.2f%%, ' % (epoch, lr, 100 * (num / loader.__len__())) +
@@ -138,3 +139,4 @@ class ECAPAModel(nn.Module):
             sys.stderr.flush()
         sys.stdout.write('\n')
         return loss / num, lr, top1 / index * len(labels)
+

@@ -42,9 +42,9 @@ class SpeakerNet1(nn.Module):
             index += len(labels)
             top1 += prec
             loss += nloss.detach().cpu().numpy()
-            sys.stderr.write(time.strftime("%m-%d %H:%M:%S") + \
-                             " [%2d] Lr: %5f, Training: %.2f%%, " % (epoch, lr, 100 * (num / loader.__len__())) + \
-                             " rank0 Loss: %.5f, ACC: %2.2f%% \r" % (loss / (num), top1 / index * len(labels)))
+            sys.stderr.write(time.strftime("%m-%d %H:%M:%S") +
+                             " [%2d] Lr: %5f, Training: %.2f%%, " % (epoch, lr, 100 * (num / loader.__len__())) +
+                             " rank0 Loss: %.5f, ACC: %2.2f%% \r" % (loss / num, top1 / index * len(labels)))
             sys.stderr.flush()
         sys.stdout.write("\n")
         return loss / num, lr, top1 / index * len(labels)
@@ -100,7 +100,7 @@ class SpeakerNet1(nn.Module):
         # fnrs, fprs, thresholds = ComputeErrorRates(scores, labels)
         # minDCF, _ = ComputeMinDCF(fnrs, fprs, thresholds, 0.05, 1, 1)
         # acc = ComputeACC(scores, labels, t) ##训练时节省时间，注释掉
-        minDCF, acc = 0, 0  ##test时注释掉
+        minDCF, acc = 0, 0  # test时注释掉
         return EER, minDCF, acc
 
     def identification_network(self, enroll_list, iden_list, iden_path):
@@ -170,6 +170,6 @@ class SpeakerNet1(nn.Module):
                     continue
             if self_state[name].size() != loaded_state[origname].size():
                 print("Wrong parameter length: %s, model: %s, loaded: %s" % (
-                       origname, self_state[name].size(), loaded_state[origname].size()))
+                    origname, self_state[name].size(), loaded_state[origname].size()))
                 continue
             self_state[name].copy_(param)

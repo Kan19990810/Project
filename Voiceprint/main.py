@@ -33,14 +33,14 @@ parser.add_argument('--eval_frames', type=int, default=300, help='测试输入�
 parser.add_argument('--seed', type=int, default=10, help='随机种子')
 
 # 训练、测试的列表、数据保存路径
-parser.add_argument('--train_list', type=str, default="", help='训练列表路径')
-parser.add_argument('--train_path', type=str, default="", help='训练数据路径')
-parser.add_argument('--eval_list', type=str, default="", help='测试列表路径')
-parser.add_argument('--eval_path', type=str, default="", help='测试数据路径')
-parser.add_argument('--musan_path', type=str, default="", help='MUSAN数据路径')
-parser.add_argument('--rir_path', type=str, default="", help='RIR数据路径')
+parser.add_argument('--train_list', type=str, default="lists/vox2_train.txt", help='训练列表路径')
+parser.add_argument('--train_path', type=str, default="/public/home/xiaok/xiaok/data/voxceleb2", help='训练数据路径')
+parser.add_argument('--eval_list', type=str, default="lists/vox1_test.txt", help='测试列表路径')
+parser.add_argument('--eval_path', type=str, default="/public/home/xiaok/xiaok/data/voxceleb1", help='测试数据路径')
+parser.add_argument('--musan_path', type=str, default="/public/home/xiaok/xiaok/data/musan_split", help='MUSAN数据路径')
+parser.add_argument('--rir_path', type=str, default="/public/home/xiaok/xiaok/data/RIRS_NOISES/simulated_rirs", help='RIR数据路径')
 parser.add_argument('--initial_model', type=str, default="", help='预训练模型')
-parser.add_argument('--save_path', type=str, default="", help='模型、分数保存路径')
+parser.add_argument('--save_path', type=str, default="exps/exp1", help='模型、分数保存路径')
 
 # 模型设置
 parser.add_argument('--C', type=int, default=1024, help='通道个数，即特征个数')

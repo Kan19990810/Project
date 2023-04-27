@@ -70,3 +70,69 @@ class MainModel(nn.Module):
         print("channel          = ", C)
         print("attention module = ", attention)
         print("dynamic conv     = ", dynamic_mode)
+
+    def forward(self, x, aug):
+        with torch.no_grad():
+            if self.feat == "fbank":
+                x = self.torchfbank(x) + 1e-6
+                x = x.log()
+                x = x - torch.mean(x, dim=-1, keepdim=True)
+                # # 差分特征
+                # delta_x = delta(x)
+                # delta_delta_x = delta(delta_x)
+                # x = torch.cat((x,delta_x,delta_delta_x),dim=-2)
+                if aug:
+                    x = self.specaug(x)
+            elif self.feat == "spectrogram":
+                x = self.torchspec(x)
+                # # 取前88维：基本覆盖人声频率范围
+                # x = x[:, 0:88, :]
+                x -= torch.mean(x, dim=-1, keepdim=True)  # 均值标准化
+                if aug:
+                    x = self.specaug(x)
+            elif self.feat == "mfcc":
+                x = self.torchmfcc(x)
+                mean = torch.mean(x, dim=-1, keepdim=True)
+                # # 差分特征
+                # delta_x = delta(x)
+                # delta_delta_x = delta(delta_x)
+                # x = torch.cat((x, delta_x, delta_delta_x), dim=-2)
+                # # std = torch.sqrt(torch.var(x,dim=-1,keepdim=True,unbiased=False))
+                # # x = (x-mean)/std  #cmvn 倒谱均值方差标准化
+                x -= mean  # 倒谱均值标准化
+                if aug:
+                    x = self.specaug(x)
+
+            else:
+                raise ValueError('Undefined input feature.')
+
+        # 频带注意力机制
+        # x = self.FBatten(x)
+
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.bn1(x)
+
+        x1 = self.layer1(x)
+        x2 = self.layer2(x + x1)
+        x3 = self.layer3(x + x1 + x2)
+
+        x = self.layer4(torch.cat((x1, x2, x3), dim=1))
+        x = self.relu(x)
+
+        t = x.size()[-1]
+
+        global_x = torch.cat((x, torch.mean(x, dim=2, keepdim=True).repeat(1, 1, t),
+                              torch.sqrt(torch.var(x, dim=2, keepdim=True).clamp(min=1e-4)).repeat(1, 1, t)), dim=1)
+
+        # ASP
+        w = self.attention(global_x)
+        mu = torch.sum(x * w, dim=2)
+        sg = torch.sqrt((torch.sum((x ** 2) * w, dim=2) - mu ** 2).clamp(min=1e-4))
+        x = torch.cat((mu, sg), 1)  # output:(batch_size,3072)
+
+        x = self.bn5(x)
+        x = self.fc6(x)
+        x = self.bn6(x)
+
+        return x

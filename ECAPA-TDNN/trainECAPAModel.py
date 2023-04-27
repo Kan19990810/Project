@@ -112,6 +112,7 @@ if __name__ == '__main__':
             score_file.flush()
 
         if epoch >= args.max_epoch:
+            print('************finish*************')
             quit()
 
         epoch += 1
