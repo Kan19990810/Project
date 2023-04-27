@@ -16,27 +16,23 @@ class MainModel(nn.Module):
         if in_feat == "fbank":
             self.torchfbank = nn.Sequential(
                 BasicBlocks.PreEmphasis(),
-                torchaudio.transforms.MelSpectrogram(sample_rate=16000, n_fft=512, win_length=400, hop_length=160,
-                                                     f_min=20, f_max=7600, window_fn=torch.hamming_window, n_mels=in_dim),
-            )
+                torchaudio.transforms.MelSpectrogram(sample_rate=16000, n_fft=512, win_length=400, hop_length=160, f_min=20, f_max=7600, window_fn=torch.hamming_window, n_mels=in_dim),
+                )
             conv_in = in_dim
 
         elif in_feat == "spectrogram":
             self.torchspec = nn.Sequential(
                 BasicBlocks.PreEmphasis(),
-                torchaudio.transforms.Spectrogram(n_fft=400, win_length=400, hop_length=160,
-                                                  window_fn=torch.hamming_window, normalized=True),
-            )
+                torchaudio.transforms.Spectrogram(n_fft=400, win_length=400, hop_length=160, window_fn=torch.hamming_window, normalized=True),
+                )
             conv_in = 200
             # spectrogram的维度不由input_dim控制 默认200: (n_fft/2)
 
         elif in_feat == "mfcc":
             self.torchmfcc = nn.Sequential(
                 BasicBlocks.PreEmphasis(),
-                torchaudio.transforms.MFCC(sample_rate=16000, n_mfcc=in_dim, log_mels=True,
-                                           melkwargs={"n_fft": 512, "win_length": 400, "hop_length": 160, "f_min": 20,
-                                                      "f_max": 7600, "window_fn": torch.hamming_window}),
-            )
+                torchaudio.transforms.MFCC(sample_rate=16000, n_mfcc=in_dim, log_mels=True, melkwargs={"n_fft": 512, "win_length": 400, "hop_length": 160, "f_min": 20, "f_max": 7600, "window_fn": torch.hamming_window}),
+                )
             conv_in = in_dim
         else:
             raise ValueError('Undefined input feature.')
