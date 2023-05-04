@@ -20,7 +20,6 @@ class PreEmphasis(nn.Module):
     def forward(self, inp: torch.tensor) -> torch.tensor:
         # inp 维度 [length, 1]
         inp = inp.unsqueeze(1)
-        # inp 维度 pad 会报错  🎶🎶🎶🎶
         inp = F.pad(inp, (1, 0), 'reflect')
         return F.conv1d(inp, self.flipped_filter).squeeze(1)
 
@@ -184,6 +183,8 @@ class Bottle2neck(nn.Module):
         out += residual
         return out
 
+# BasicBlock 两个conv、bn层 -> attention模块
+
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -195,7 +196,7 @@ class BasicBlock(nn.Module):
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.downsample = downsample
+        self.downsample = downsample  # 用于匹配 residual 和 out 的维度
         self.stride = stride
         if attention == "se":
             self.atten = AttentionBlocks.SEModule(planes, planes // reduction)

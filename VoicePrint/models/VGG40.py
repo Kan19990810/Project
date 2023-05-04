@@ -1,7 +1,11 @@
 import torch
+import torchaudio
 
 import torch.nn as nn
 import models.BasicBlocks as BasicBlocks
+
+# VGG-40基准模型
+# 输入特征: fbank      输入维度: in_dim=40        输出维度: nOut=1024
 
 
 class MainModel(nn.Module):
@@ -10,38 +14,38 @@ class MainModel(nn.Module):
         print('Embedding size is %d, encoder ASP.' % nOut)
         self.feat = in_feat
         self.specaug = BasicBlocks.FbankAug()
-        self.netcnn = nn.Sequential(
-            nn.Conv2d(1, 96, kernel_size=(5, 7), stride=(1, 2), padding=(2, 2)),
+        self.netcnn = nn.Sequential(  # in: (batch, 1, in_dim, times)
+            nn.Conv2d(1, 96, kernel_size=(5, 7), stride=(1, 2), padding=(2, 2)),  # (batch, 96, in_dim, times/2) 时间维度压缩
             nn.BatchNorm2d(96),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 2)),
+            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 2)),  # (batch, 96, in_dim, times/4) 时间维度压缩池化
 
-            nn.Conv2d(96, 256, kernel_size=(5, 5), stride=(2, 2), padding=(1, 1)),
+            nn.Conv2d(96, 256, kernel_size=(5, 5), stride=(2, 2), padding=(1, 1)),  # (batch, 256, in_dim/2, times/8) 特征、时间维度压缩
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2)),  # (batch, 256, in_dim/4, times/16) 特征、时间维度压缩池化
 
-            nn.Conv2d(256, 384, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(256, 384, kernel_size=(3, 3), padding=(1, 1)),  # (batch, 384, in_dim/4, times/16) 激励
             nn.BatchNorm2d(384),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(384, 256, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(384, 256, kernel_size=(3, 3), padding=(1, 1)),  # (batch, 256, in_dim/4, times/16) 压缩
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(256, 256, kernel_size=(3, 3), padding=(1, 1)),
+            nn.Conv2d(256, 256, kernel_size=(3, 3), padding=(1, 1)),  # (batch, 256, in_dim/4, times/16) kernel_size=(3, 3)
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2)),  # (batch, 256, in_dim/8, times/32 特征、时间维度压缩池化
 
-            nn.Conv2d(256, 512, kernel_size=(4, 1), padding=(0, 0)),
+            nn.Conv2d(256, 512, kernel_size=(4, 1), padding=(0, 0)),  # (batch, 512, in_dim/8, times/32) kernel_size=(4, 1)
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
 
         )
 
-        self.encoder = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512, nOut)
+        self.encoder = nn.AdaptiveAvgPool2d((1, 1))  # (batch, 512, 1, 1)
+        self.fc = nn.Linear(512, nOut)  # (batch, nOut= 1024) 全连接层
         self.instancenorm = nn.InstanceNorm1d(in_dim)
         if in_feat == "fbank":
             self.torchfb = nn.Sequential(
@@ -71,9 +75,9 @@ class MainModel(nn.Module):
                 # delta_x = delta(x)
                 # delta_delta_x = delta(delta_x)
                 # x = torch.cat((x,delta_x,delta_delta_x),dim=-2)
-                x = self.instancenorm(x).unsqueeze(1)
+                x = self.instancenorm(x).unsqueeze(1)  # 归一化 -> (batch, 1, in_dim=40, time)
                 if aug:
-                    x = self.specaug(x)
+                    x = self.specaug(x)  # 数据增强， 掩盖一部分特征
             elif self.feat == "spectrogram":
                 x = self.torchspec(x)
                 # # 取前88维：基本覆盖人声频率范围
@@ -98,8 +102,8 @@ class MainModel(nn.Module):
                 raise ValueError('Undefined input feature.')
 
         x = self.netcnn(x)
-        x = self.encoder(x)
-        x = x.view((x.size()[0], -1))
-        x = self.fc(x)
+        x = self.encoder(x)  # (batch, 512, 1, 1)
+        x = x.view((x.size()[0], -1))  # (batch, 512)
+        x = self.fc(x)  # (batch, nOut=1024)
 
         return x

@@ -35,7 +35,7 @@ class SpeakerNet1(nn.Module):
             labels = torch.LongTensor(labels).cuda()
             speaker_embedding = self.speaker_encoder.forward(data, aug=True)
             speaker_embedding = speaker_embedding.reshape(
-                self.nPerSpeaker, -1, speaker_embedding.size()[-1]).transpose(1, 0).squeeze(1)
+                self.nPerSpeaker, -1, speaker_embedding.size()[-1]).transpose(1, 0).squeeze(1)  # (batch, nPerSpeaker, 192)
             nloss, prec = self.speaker_loss.forward(speaker_embedding, labels)
             nloss.backward()
             self.optimizer.step()

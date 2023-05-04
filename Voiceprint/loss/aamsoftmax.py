@@ -5,6 +5,8 @@ import tools
 import torch.nn as nn
 import torch.nn.functional as F
 
+# AAMSoftMax 损失函数
+
 
 class LossFunction(nn.Module):
     def __init__(self, n_class, m, s, **kwargs):
