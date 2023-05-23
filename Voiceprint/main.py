@@ -22,11 +22,11 @@ parser = argparse.ArgumentParser(description="ASV_trainer")
 # 训练设置
 parser.add_argument('--world_size', type=int, default=1, help='GPU数量')
 parser.add_argument('--num_frames', type=int, default=200, help='输入音频帧数： 200 -> 2秒')
-parser.add_argument('--max_epoch', type=int, default=1, help='最大训练轮数')
+parser.add_argument('--max_epoch', type=int, default=20, help='最大训练轮数')
 parser.add_argument('--batch_size', type=int, default=400, help='批数据大小')
 parser.add_argument('--utter_per_speaker', type=int, default=500, help='每个轮次中每个说话人的最大音频数')
 parser.add_argument('--n_cpu', type=int, default=16, help='数据加载CPU数量')
-parser.add_argument('--test_step', type=int, default=1, help='test_step轮次后测试')
+parser.add_argument('--test_step', type=int, default=10, help='test_step轮次后测试')
 parser.add_argument('--lr', type=float, default=0.001, help='学习率')
 parser.add_argument('--lr_decay', type=float, default=0.97, help='学习率衰减')
 parser.add_argument('--eval_frames', type=int, default=300, help='测试输入音频帧数')
@@ -48,8 +48,8 @@ parser.add_argument('--in_feat', type=str, default="fbank", help='模型的输�
 parser.add_argument('--in_dim', type=int, default=64, help='模型的输入特征个数')
 parser.add_argument('--attention', type=str, default="se", help='模型的注意力模式')
 parser.add_argument('--dynamic_mode', type=bool, default=False, help='动态卷积模式')
-parser.add_argument('--model', type=str, default="ecapa", help='模型名字')
-parser.add_argument('--loss', type=str, default="aamsoftmax", help='损失函数')
+parser.add_argument('--model', type=str, default="ECAPA", help='模型名字')
+parser.add_argument('--loss', type=str, default="AAMSoftMax", help='损失函数')
 parser.add_argument('--m', type=float, default=0.2, help='AAM Softmax的损失裕度')
 parser.add_argument('--s', type=float, default=30, help='AAM Softmax的缩放系数')
 parser.add_argument('--nPerSpeaker', type=int, default=1, help='每批次每个说话人的语音数， 用于度量学习')
@@ -200,31 +200,31 @@ def main_worker_single(gpu, args):
             sum(param.numel() for param in s.parameters()) / 1024 / 1024))
     EERs = []
     score_file = open(args.score_save_path, "a+")
-    train_loss = open(os.path.join(args.save_path, 'train_loss.txt'), "a+")
+    # train_loss = open(os.path.join(args.save_path, 'train_loss.txt'), "a+")
+    # eer_file = open(os.path.join(args.save_path, 'eer.txt'), "a+")
     # eval_loss = open(os.path.join(args.save_path, 'eval_loss.txt'), "a+")
-    eer_file = open(os.path.join(args.save_path, 'eer.txt'), "a+")
 
     while 1:
         # Training for one epoch
         loss, lr, acc = s.train_network(epoch=epoch, loader=train_data_loader)
-        # loss1 = s.compute_eval_loss(loader=eval_data_loader)
-        # Evaluation every [test_step] epochs
+        # loss1 = s.compute_eval_loss(loader=eval_data_loader)  # Evaluation every [test_step] epochs
         if epoch % args.test_step == 0:
             s.save_parameters(args.model_save_path + "/model_%04d.pt" % epoch)
             EERs.append(s.eval_network(eval_list=args.eval_list, eval_path=args.eval_path)[0])
             print(time.strftime("%Y-%m-%d %H:%M:%S"),
                   "%d epoch, ACC %2.2f%%, EER %2.2f%%, bestEER %2.2f%%" % (epoch, acc, EERs[-1], min(EERs)))
-            # 此处是训练ACC
             score_file.write("%d epoch, LR %f, LOSS %f, ACC %2.2f%%, EER %2.2f%%, bestEER %2.2f%%\n" % (
                              epoch, lr, loss, acc, EERs[-1], min(EERs)))
-            train_loss.write("%f, " % loss)
-            # eval_loss.write("%f, "%(loss1))
-            eer_file.write("%2.2f, " % (EERs[-1]))
+
+            # train_loss.write("%f, " % loss)  # 与score_file填写内容有重复，用于观察loss、eer走势
+            # eer_file.write("%2.2f, " % (EERs[-1]))
 
             score_file.flush()
-            train_loss.flush()
-            # eval_loss.flush()
-            eer_file.flush()
+            # train_loss.flush()
+            # eer_file.flush()
+
+            # eval_loss.write("%f, "%(loss1))  # Evaluation every [test_step] epochs
+            # eval_loss.flush()  # Evaluation every [test_step] epochs
 
         if epoch >= args.max_epoch:
             quit()
@@ -235,10 +235,10 @@ def main_worker_single(gpu, args):
 
 
 def main():
-    print('Python Version:', sys.version)
-    print('PyTorch Version:', torch.__version__)
-    print('Number of GPUs:', torch.cuda.device_count())
-    print('Save path:', args.save_path)
+    # print('Python Version:', sys.version)
+    # print('PyTorch Version:', torch.__version__)
+    # print('Number of GPUs:', torch.cuda.device_count())
+    # print('Save path:', args.save_path)
 
     if args.ddp:
         # 多卡训练

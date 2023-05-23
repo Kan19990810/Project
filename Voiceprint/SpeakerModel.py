@@ -28,25 +28,26 @@ class SpeakerNet1(nn.Module):
         self.scheduler.step(epoch - 1)
         index, top1, loss = 0, 0, 0
         lr = self.optimizer.param_groups[0]['lr']
-        for num, (data, labels) in enumerate(loader, start=1):
+        for num, (data, labels) in tqdm.tqdm(enumerate(loader, start=1), desc='Epoch %i' % epoch, total=len(loader), ncols=80):
             data = data.transpose(1, 0)
             self.zero_grad()
             data = data.reshape(-1, data.size()[-1]).cuda()
             labels = torch.LongTensor(labels).cuda()
             speaker_embedding = self.speaker_encoder.forward(data, aug=True)
             speaker_embedding = speaker_embedding.reshape(
-                self.nPerSpeaker, -1, speaker_embedding.size()[-1]).transpose(1, 0).squeeze(1)  # (batch, nPerSpeaker, 192)
+                self.nPerSpeaker, -1, speaker_embedding.size()[-1]).transpose(1, 0).squeeze(
+                1)  # (batch, nPerSpeaker, 192)
             nloss, prec = self.speaker_loss.forward(speaker_embedding, labels)
             nloss.backward()
             self.optimizer.step()
             index += len(labels)
             top1 += prec
             loss += nloss.detach().cpu().numpy()
-            sys.stderr.write(time.strftime("%m-%d %H:%M:%S") +
-                             " [%2d] Lr: %5f, Training: %.2f%%, " % (epoch, lr, 100 * (num / loader.__len__())) +
-                             " rank0 Loss: %.5f, ACC: %2.2f%% \r" % (loss / num, top1 / index * len(labels)))
-            sys.stderr.flush()
-        sys.stdout.write("\n")
+        #     sys.stderr.write(time.strftime("%m-%d %H:%M:%S") +
+        #                      " [%2d] Lr: %5f, Training: %.2f%%, " % (epoch, lr, 100 * (num / loader.__len__())) +
+        #                      " rank0 Loss: %.5f, ACC: %2.2f%% \r" % (loss / num, top1 / index * len(labels)))
+        #     sys.stderr.flush()
+        # sys.stdout.write("\n")
         return loss / num, lr, top1 / index * len(labels)
 
     def eval_network(self, eval_list, eval_path):
@@ -60,7 +61,7 @@ class SpeakerNet1(nn.Module):
         setfiles = list(set(files))
         setfiles.sort()
 
-        for idx, file in tqdm.tqdm(enumerate(setfiles), total=len(setfiles), ncols=80):
+        for idx, file in tqdm.tqdm(enumerate(setfiles), desc='Evaluating', total=len(setfiles), ncols=80):
             audio, _ = soundfile.read(os.path.join(eval_path, file))
             data_1 = torch.FloatTensor(numpy.stack([audio], axis=0)).cuda()
             # Spliited utterance matrix

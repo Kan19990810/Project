@@ -69,7 +69,7 @@ class train_loader(object):
     def __getitem__(self, indices):
         feat = []
         for index in indices:
-            # 读入语音并采�?ms
+            # 读入语音并采
             audio = loadWAV(self.data_list[index], self.num_frames)
             # 数据增强 混响 加噪
             augtype = random.randint(0, 5)
@@ -135,12 +135,9 @@ class train_sampler(Sampler):
         self.world_size = world_size
 
     def __iter__(self):
-        # g torch.Generator() 操作随机�?
-        g = torch.Generator()
-        # manual_seed 手动随机种子
-        g.manual_seed(self.seed + self.epoch)
-        # randperm 将序列随机打�?
-        indices = torch.randperm(len(self.data_label), generator=g).tolist()
+        g = torch.Generator()  # g torch.Generator() 操作随机
+        g.manual_seed(self.seed + self.epoch)  # manual_seed 手动随机种子
+        indices = torch.randperm(len(self.data_label), generator=g).tolist()  # randperm 将序列随机打
         data_dict = {}
 
         # Sort into dictionary of file indices for each ID
@@ -152,19 +149,18 @@ class train_sampler(Sampler):
         dictkeys = list(data_dict.keys())
         # dictkeys = list(self.label_dict.keys())
         dictkeys.sort()
-        # 虚拟函数 返回（len(li) \\ size, size)
-        lol = lambda li, size: [li[i:i + size] for i in range(0, len(li), size)]
+        lol = lambda li, size: [li[i:i + size] for i in range(0, len(li), size)]  # 虚拟函数 返回[len(li) \\ size, size]
 
         flattened_list = []
         flattened_label = []
         for findex, key in enumerate(dictkeys):
             data = data_dict[key]
             # numSeg = k * nPerSpeaker
-            numSeg = round_down(min(len(data), self.utter_per_speaker), self.nPerSpeaker)  # 向下取最大的可整�?nPerSpeaker 的数
+            numSeg = round_down(min(len(data), self.utter_per_speaker), self.nPerSpeaker)  # 向下取最大的可整除nPerSpeaker 的数
             # rp, (numSeg \\ nPerSpeaker = k, nPerSpeaker)
             rp = lol(numpy.arange(numSeg), self.nPerSpeaker)  # 返回以nPerSpeaker长度为间隔的顺序索引数组
             # rp = lol(numpy.random.permutation(len(data))[:numSeg], self.nPerSpeaker)
-            # len(rp) = numSeg \\ nPerSpeaker, 相当于同时也有len(rp)个相同的�?
+            # len(rp) = numSeg \\ nPerSpeaker, 相当于同时也有len(rp)个相同的
             flattened_label.extend([findex] * (len(rp)))
             for indices in rp:
                 # indices [i: i + nPerSpeaker]
@@ -190,7 +186,7 @@ class train_sampler(Sampler):
         # nGPUs, device data to each GPU
         if self.ddp:
             total_size = round_down(len(mixed_list), self.batch_size * self.world_size)
-            # 不明白🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂�?
+            # 不明白🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️🤦‍
             start_index = int((dist.get_rank()) / self.world_size * total_size)
             end_index = int((dist.get_rank() + 1) / self.world_size * total_size)
             self.num_samples = end_index - start_index
@@ -200,7 +196,7 @@ class train_sampler(Sampler):
         else:
             total_size = round_down(len(mixed_list), self.batch_size)
             self.num_samples = total_size
-            return iter(mixed_list[:total_size])
+            return iter(mixed_list[:total_size])  # -> train_loader 的 __getitem__(self, indices)
 
     def __len__(self) -> int:
         return self.num_samples

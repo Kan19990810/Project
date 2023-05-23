@@ -1,5 +1,5 @@
 import loss.AngleProto as AngleProto
-import loss.aamsoftmax as aamsoftmax
+import loss.AAMSoftMax as aamsoftmax
 import torch.nn as nn
 
 
