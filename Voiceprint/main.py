@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description="ASV_trainer")
 # 训练设置
 parser.add_argument('--world_size', type=int, default=1, help='GPU数量')
 parser.add_argument('--num_frames', type=int, default=200, help='输入音频帧数： 200 -> 2秒')
-parser.add_argument('--max_epoch', type=int, default=20, help='最大训练轮数')
+parser.add_argument('--max_epoch', type=int, default=100, help='最大训练轮数')
 parser.add_argument('--batch_size', type=int, default=400, help='批数据大小')
 parser.add_argument('--utter_per_speaker', type=int, default=500, help='每个轮次中每个说话人的最大音频数')
 parser.add_argument('--n_cpu', type=int, default=16, help='数据加载CPU数量')
