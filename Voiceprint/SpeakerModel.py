@@ -98,10 +98,10 @@ class SpeakerNet1(nn.Module):
 
         # Coumpute EER and minDCF
         _, EER, _, _, t = tools.tuneThresholdfromScore(scores, labels, [1, 0.1])
-        # fnrs, fprs, thresholds = ComputeErrorRates(scores, labels)
-        # minDCF, _ = ComputeMinDCF(fnrs, fprs, thresholds, 0.05, 1, 1)
-        # acc = ComputeACC(scores, labels, t) ##训练时节省时间，注释掉
-        minDCF, acc = 0, 0  # test时注释掉
+        fnrs, fprs, thresholds = tools.ComputeErrorRates(scores, labels)
+        minDCF, _ = tools.ComputeMinDCF(fnrs, fprs, thresholds, 0.05, 1, 1)
+        acc = tools.ComputeACC(scores, labels, t) ##训练时节省时间，注释掉
+        # minDCF, acc = 0, 0  # test时注释掉
         return EER, minDCF, acc
 
     def identification_network(self, enroll_list, iden_list, iden_path):
