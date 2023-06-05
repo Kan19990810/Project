@@ -26,7 +26,7 @@ parser.add_argument('--max_epoch', type=int, default=100, help='最大训练轮�
 parser.add_argument('--batch_size', type=int, default=400, help='批数据大小')
 parser.add_argument('--utter_per_speaker', type=int, default=500, help='每个轮次中每个说话人的最大音频数')
 parser.add_argument('--n_cpu', type=int, default=16, help='数据加载CPU数量')
-parser.add_argument('--test_step', type=int, default=10, help='test_step轮次后测试')
+parser.add_argument('--test_step', type=int, default=1, help='test_step轮次后测试')
 parser.add_argument('--lr', type=float, default=0.001, help='学习率')
 parser.add_argument('--lr_decay', type=float, default=0.97, help='学习率衰减')
 parser.add_argument('--eval_frames', type=int, default=300, help='测试输入音频帧数')

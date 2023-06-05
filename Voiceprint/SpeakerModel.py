@@ -28,6 +28,7 @@ class SpeakerNet1(nn.Module):
         self.scheduler.step(epoch - 1)
         index, top1, loss = 0, 0, 0
         lr = self.optimizer.param_groups[0]['lr']
+        # for num, (data, labels) in enumerate(loader, start=1):
         for num, (data, labels) in tqdm.tqdm(enumerate(loader, start=1), desc='Epoch %i' % epoch, total=len(loader), ncols=80):
             data = data.transpose(1, 0)
             self.zero_grad()
@@ -43,11 +44,11 @@ class SpeakerNet1(nn.Module):
             index += len(labels)
             top1 += prec
             loss += nloss.detach().cpu().numpy()
-        #     sys.stderr.write(time.strftime("%m-%d %H:%M:%S") +
-        #                      " [%2d] Lr: %5f, Training: %.2f%%, " % (epoch, lr, 100 * (num / loader.__len__())) +
-        #                      " rank0 Loss: %.5f, ACC: %2.2f%% \r" % (loss / num, top1 / index * len(labels)))
-        #     sys.stderr.flush()
-        # sys.stdout.write("\n")
+            sys.stderr.write(time.strftime("%m-%d %H:%M:%S") +
+                             " [%2d] Lr: %5f, Training: %.2f%%, " % (epoch, lr, 100 * (num / loader.__len__())) +
+                             " rank0 Loss: %.5f, ACC: %2.2f%% \r" % (loss / num, top1 / index * len(labels)))
+            sys.stderr.flush()
+        sys.stdout.write("\n")
         return loss / num, lr, top1 / index * len(labels)
 
     def eval_network(self, eval_list, eval_path):
@@ -100,9 +101,12 @@ class SpeakerNet1(nn.Module):
         _, EER, _, _, t = tools.tuneThresholdfromScore(scores, labels, [1, 0.1])
         fnrs, fprs, thresholds = tools.ComputeErrorRates(scores, labels)
         minDCF, _ = tools.ComputeMinDCF(fnrs, fprs, thresholds, 0.05, 1, 1)
-        acc = tools.ComputeACC(scores, labels, t) ##训练时节省时间，注释掉
+
+        # acc = tools.ComputeACC(scores, labels, t)  ##训练时节省时间，注释掉
         # minDCF, acc = 0, 0  # test时注释掉
-        return EER, minDCF, acc
+        # return EER, minDCF, acc
+
+        return EER, minDCF
 
     def identification_network(self, enroll_list, iden_list, iden_path):
         self.eval()
