@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/VoicePrint.iml" filepath="$PROJECT_DIR$/.idea/VoicePrint.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ECAPA-TDNN.iml" filepath="$PROJECT_DIR$/.idea/ECAPA-TDNN.iml" />
     </modules>
   </component>
 </project>
